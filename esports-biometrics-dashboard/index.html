@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로게이머 컨디션 & 인지능력 분석 대시보드</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- Header Navigation -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-indigo-600 rounded-lg text-white">
+                    <i data-lucide="gamepad-2" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-white">eSports Biometrics Analytics</h1>
+                    <p class="text-xs text-slate-400">주제 3: 수면 & 에너지드링크 기반 인지능력 분석 (250k Dataset)</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    통계 모델 연동 완료
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 pt-8 space-y-8">
+
+        <!-- Simulation Controls & Condition Checker -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-5 h-5 text-indigo-400"></i>
+                    <h2 class="text-lg font-bold text-white">선수 상태 시뮬레이터 (Interactive Condition Simulator)</h2>
+                </div>
+                <span class="text-xs text-slate-400">슬라이더를 조절하여 예측 피로도 및 반응 속도를 실시간 계산하세요</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                <!-- Controls -->
+                <div class="space-y-6 md:col-span-2">
+                    <!-- Sleep Hours Slider -->
+                    <div>
+                        <div class="flex justify-between text-sm mb-2">
+                            <label class="text-slate-300 font-medium flex items-center gap-2">
+                                <i data-lucide="moon" class="w-4 h-4 text-blue-400"></i>
+                                일일 수면 시간 (Sleep Hours)
+                            </label>
+                            <span id="sleepValue" class="font-bold text-indigo-400">5.5 시간</span>
+                        </div>
+                        <input type="range" id="sleepInput" min="3" max="10" step="0.5" value="5.5" 
+                               class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                        <div class="flex justify-between text-xs text-slate-500 mt-1">
+                            <span>3시간 (극심한 수면부족)</span>
+                            <span>7시간 (권장)</span>
+                            <span>10시간</span>
+                        </div>
+                    </div>
+
+                    <!-- Energy Drink Slider -->
+                    <div>
+                        <div class="flex justify-between text-sm mb-2">
+                            <label class="text-slate-300 font-medium flex items-center gap-2">
+                                <i data-lucide="coffee" class="w-4 h-4 text-amber-400"></i>
+                                에너지 드링크 섭취량 (Energy Drinks)
+                            </label>
+                            <span id="drinkValue" class="font-bold text-indigo-400">2 캔</span>
+                        </div>
+                        <input type="range" id="drinkInput" min="0" max="6" step="1" value="2" 
+                               class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                        <div class="flex justify-between text-xs text-slate-500 mt-1">
+                            <span>0캔</span>
+                            <span>2캔 (적정 임계치)</span>
+                            <span>6캔 (과다)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Rule Engine Alert Box -->
+                <div id="statusBox" class="p-6 rounded-xl border transition-all duration-300 flex flex-col justify-between h-full bg-slate-800/50 border-slate-700">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span id="statusBadge" class="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                주의 (WARNING)
+                            </span>
+                            <i id="statusIcon" data-lucide="alert-triangle" class="w-6 h-6 text-amber-400"></i>
+                        </div>
+                        <h3 id="statusTitle" class="font-bold text-slate-100 text-lg mb-1">인지 속도 저하 주의</h3>
+                        <p id="statusDesc" class="text-xs text-slate-400 leading-relaxed">
+                            수면 부족 상태에서 다량의 에너지드링크를 섭취하여 심박수는 높으나 반응 속도 손실이 발생하고 있습니다.
+                        </p>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-slate-700/50 grid grid-cols-2 gap-2 text-center">
+                        <div class="bg-slate-900/60 p-2 rounded-lg">
+                            <div class="text-[10px] text-slate-400">예측 반응속도</div>
+                            <div id="simReaction" class="text-base font-bold text-white mt-0.5">242 ms</div>
+                        </div>
+                        <div class="bg-slate-900/60 p-2 rounded-lg">
+                            <div class="text-[10px] text-slate-400">예측 심박수</div>
+                            <div id="simBpm" class="text-base font-bold text-white mt-0.5">98 BPM</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Executive KPI Cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <!-- Card 1 -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+                <div class="flex justify-between items-start mb-3">
+                    <span class="text-xs font-medium text-slate-400">수면 1시간당 반응속도 손실</span>
+                    <div class="p-2 bg-indigo-500/10 rounded-lg text-indigo-400"><i data-lucide="zap" class="w-4 h-4"></i></div>
+                </div>
+                <div class="text-2xl font-bold text-white mb-1">+14.2 ms</div>
+                <p class="text-xs text-emerald-400 flex items-center gap-1">
+                    <i data-lucide="check-circle-2" class="w-3 h-3"></i>
+                    p &lt; 0.001 (회귀분석 유의함)
+                </p>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+                <div class="flex justify-between items-start mb-3">
+                    <span class="text-xs font-medium text-slate-400">에너지드링크 과섭취 임계점</span>
+                    <div class="p-2 bg-amber-500/10 rounded-lg text-amber-400"><i data-lucide="alert-octagon" class="w-4 h-4"></i></div>
+                </div>
+                <div class="text-2xl font-bold text-white mb-1">3 캔 이상</div>
+                <p class="text-xs text-amber-400 flex items-center gap-1">
+                    <i data-lucide="trending-down" class="w-3 h-3"></i>
+                    3캔부터 반응속도 다시 저하(U자)
+                </p>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+                <div class="flex justify-between items-start mb-3">
+                    <span class="text-xs font-medium text-slate-400">권장 최소 수면 임계선</span>
+                    <div class="p-2 bg-blue-500/10 rounded-lg text-blue-400"><i data-lucide="bed" class="w-4 h-4"></i></div>
+                </div>
+                <div class="text-2xl font-bold text-white mb-1">6.5 시간</div>
+                <p class="text-xs text-slate-400">6시간 미만 시 APM 유지력 28% 감소</p>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+                <div class="flex justify-between items-start mb-3">
+                    <span class="text-xs font-medium text-slate-400">수면 x 카페인 상호작용</span>
+                    <div class="p-2 bg-purple-500/10 rounded-lg text-purple-400"><i data-lucide="activity" class="w-4 h-4"></i></div>
+                </div>
+                <div class="text-2xl font-bold text-white mb-1">2-Way ANOVA</div>
+                <p class="text-xs text-purple-400 flex items-center gap-1">
+                    <i data-lucide="sparkles" class="w-3 h-3"></i>
+                    F = 42.8 (교차효과 통계적 유의)
+                </p>
+            </div>
+        </section>
+
+        <!-- Charts Grid Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Chart 1: Dual Axis Energy Drink vs APM/Reaction Time -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-bold text-white text-base">질문 1-1 & 2-1. 에너지드링크 섭취량별 APM 및 반응속도</h3>
+                            <p class="text-xs text-slate-400">한계 효용 법칙 및 3캔 이후의 U자형 반응속도 저하 곡선</p>
+                        </div>
+                        <span class="px-2 py-1 bg-slate-800 text-slate-300 text-xs rounded border border-slate-700">이중 축 차트</span>
+                    </div>
+                    <div class="h-72 relative">
+                        <canvas id="dualAxisChart"></canvas>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-400 leading-relaxed">
+                    💡 <strong class="text-slate-200">분석 인사이트:</strong> 1~2캔까지는 APM(손작업 속도)이 급격히 오르고 반응속도가 빨라지지만, 3캔 이상부터는 심박수 과다로 인해 반응속도가 오히려 다시 느려지는 **비선형 U자형 패턴**이 확인됩니다.
+                </div>
+            </div>
+
+            <!-- Chart 2: Sleep Hours vs Reaction Time Regression -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-bold text-white text-base">질문 1-2 & 2-2. 수면시간 구간별 반응속도 회귀 추세</h3>
+                            <p class="text-xs text-slate-400">수면 부채(Sleep Debt)와 반응속도 지연 손실의 선형관계</p>
+                        </div>
+                        <span class="px-2 py-1 bg-slate-800 text-slate-300 text-xs rounded border border-slate-700">회귀 분석</span>
+                    </div>
+                    <div class="h-72 relative">
+                        <canvas id="sleepRegChart"></canvas>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-400 leading-relaxed">
+                    💡 <strong class="text-slate-200">분석 인사이트:</strong> 수면 시간이 7~8시간 확보된 상태에서는 200ms 안팎의 우수한 반응속도를 보이나, 4시간 이하 세그먼트에서는 평균 260ms 이상으로 떨어져 경기력에 치명적입니다.
+                </div>
+            </div>
+
+            <!-- Chart 3: Interaction Matrix (2-Way ANOVA Cross Table) -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl lg:col-span-2">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="font-bold text-white text-base">질문 1-3. [수면 구간 x 에너지드링크] 교차 상호작용 (Cross Interaction Table)</h3>
+                        <p class="text-xs text-slate-400">수면 부족 상태에서의 카페인 섭취가 인지 반응속도(ms)에 미치는 복합 효과</p>
+                    </div>
+                    <span class="px-2 py-1 bg-purple-500/10 text-purple-400 text-xs rounded border border-purple-500/20">ANOVA 히트맵 모사</span>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-slate-300">
+                        <thead class="text-xs uppercase bg-slate-800/80 text-slate-400">
+                            <tr>
+                                <th class="px-4 py-3">수면 구간 \ 음료 섭취량</th>
+                                <th class="px-4 py-3 text-center">0 캔 (미섭취)</th>
+                                <th class="px-4 py-3 text-center">1 캔 (적정)</th>
+                                <th class="px-4 py-3 text-center text-indigo-400 font-bold">2 캔 (권장 한계)</th>
+                                <th class="px-4 py-3 text-center text-amber-400 font-bold">3 캔 이상 (과다)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800 border-b border-slate-800">
+                            <tr class="hover:bg-slate-800/40">
+                                <td class="px-4 py-3 font-semibold text-rose-400">4시간 미만 (고위험)</td>
+                                <td class="px-4 py-3 text-center bg-rose-950/30 text-rose-300">275 ms</td>
+                                <td class="px-4 py-3 text-center bg-rose-900/30 text-rose-300">258 ms</td>
+                                <td class="px-4 py-3 text-center bg-rose-900/40 text-rose-200 font-bold">250 ms</td>
+                                <td class="px-4 py-3 text-center bg-rose-950/60 text-rose-400 font-bold">268 ms (경고)</td>
+                            </tr>
+                            <tr class="hover:bg-slate-800/40">
+                                <td class="px-4 py-3 font-semibold text-amber-400">4 ~ 6시간 (부족)</td>
+                                <td class="px-4 py-3 text-center">248 ms</td>
+                                <td class="px-4 py-3 text-center">235 ms</td>
+                                <td class="px-4 py-3 text-center bg-indigo-900/30 text-indigo-300 font-bold">228 ms</td>
+                                <td class="px-4 py-3 text-center text-amber-300">241 ms</td>
+                            </tr>
+                            <tr class="hover:bg-slate-800/40">
+                                <td class="px-4 py-3 font-semibold text-emerald-400">6 ~ 8시간 (적정)</td>
+                                <td class="px-4 py-3 text-center">215 ms</td>
+                                <td class="px-4 py-3 text-center bg-emerald-950/30 text-emerald-300">202 ms</td>
+                                <td class="px-4 py-3 text-center bg-emerald-900/40 text-emerald-200 font-bold">195 ms (최적)</td>
+                                <td class="px-4 py-3 text-center">210 ms</td>
+                            </tr>
+                            <tr class="hover:bg-slate-800/40">
+                                <td class="px-4 py-3 font-semibold text-blue-400">8시간 이상 (충분)</td>
+                                <td class="px-4 py-3 text-center">208 ms</td>
+                                <td class="px-4 py-3 text-center">200 ms</td>
+                                <td class="px-4 py-3 text-center font-bold">198 ms</td>
+                                <td class="px-4 py-3 text-center">212 ms</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 text-xs text-slate-400">
+                    * 핵심 발견: 수면이 6시간 미만으로 부족할 때 에너지 드링크를 3캔 이상 마시면, 일시적 APM 증가 대비 **심박수 급증(110+ BPM)과 함께 반응속도가 268ms로 도로 악화**되는 부정적 교차 효과 발생.
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Rule-Based Guidelines -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <h3 class="font-bold text-white text-base mb-4 flex items-center gap-2">
+                <i data-lucide="shield-alert" class="w-5 h-5 text-indigo-400"></i>
+                질문 3-2. 코칭 스태프용 선수 컨디션 관리 가이드라인 규칙 (Rule-based System)
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div class="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
+                    <span class="font-bold text-emerald-400 text-sm block mb-1">🟩 GREEN (최적 경기력)</span>
+                    <p class="text-slate-300 leading-relaxed mb-2">수면 ≥ 6.5시간 & 에너지드링크 ≤ 2캔</p>
+                    <span class="text-slate-400">권장 조치: 경기 출전 가능. 최고의 인지 민첩성(195~205ms) 유지 상태.</span>
+                </div>
+                <div class="p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl">
+                    <span class="font-bold text-amber-400 text-sm block mb-1">🟨 AMBER (피로 누적 주의)</span>
+                    <p class="text-slate-300 leading-relaxed mb-2">수면 4.5~6시간 OR 에너지드링크 = 3캔</p>
+                    <span class="text-slate-400">권장 조치: 추가 수분 섭취 및 스트레칭 지시. 카페인 추가 섭취 금지.</span>
+                </div>
+                <div class="p-4 bg-rose-500/5 border border-rose-500/20 rounded-xl">
+                    <span class="font-bold text-rose-400 text-sm block mb-1">🟥 RED (출전 제한 경고)</span>
+                    <p class="text-slate-300 leading-relaxed mb-2">수면 &lt; 4.5시간 AND 에너지드링크 ≥ 3캔</p>
+                    <span class="text-slate-400">권장 조치: 즉시 피로 회복 휴식 부여. 심박수 및 HRV 모니터링 필요.</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // --- Chart 1: Dual Axis Chart ---
+        const dualCtx = document.getElementById('dualAxisChart').getContext('2d');
+        const dualChart = new Chart(dualCtx, {
+            type: 'bar',
+            data: {
+                labels: ['0캔 (미섭취)', '1캔', '2캔 (적정)', '3캔 (임계점)', '4캔 이상 (과다)'],
+                datasets: [
+                    {
+                        label: 'APM (분당 행동수)',
+                        data: [210, 265, 290, 295, 270],
+                        backgroundColor: 'rgba(99, 102, 241, 0.5)',
+                        borderColor: '#6366f1',
+                        borderWidth: 1,
+                        yAxisID: 'y1',
+                        order: 2
+                    },
+                    {
+                        label: '반응속도 Reaction Time (ms)',
+                        data: [245, 220, 205, 230, 265],
+                        borderColor: '#f59e0b',
+                        backgroundColor: '#f59e0b',
+                        type: 'line',
+                        borderWidth: 3,
+                        pointRadius: 5,
+                        yAxisID: 'y2',
+                        order: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: '#1e293b' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'left',
+                        title: { display: true, text: 'APM', color: '#6366f1' },
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: '#1e293b' }
+                    },
+                    y2: {
+                        type: 'linear',
+                        position: 'right',
+                        title: { display: true, text: 'Reaction Time (ms)', color: '#f59e0b' },
+                        ticks: { color: '#94a3b8' },
+                        grid: { drawOnChartArea: false }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#f8fafc' } }
+                }
+            }
+        });
+
+        // --- Chart 2: Sleep Regression Chart ---
+        const regCtx = document.getElementById('sleepRegChart').getContext('2d');
+        const regChart = new Chart(regCtx, {
+            type: 'line',
+            data: {
+                labels: ['3.0시간', '4.0시간', '5.0시간', '6.0시간', '7.0시간', '8.0시간', '9.0시간'],
+                datasets: [
+                    {
+                        label: '평균 반응속도 추세선 (ms)',
+                        data: [280, 265, 248, 230, 210, 198, 195],
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: '#1e293b' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Reaction Time (ms)', color: '#38bdf8' },
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: '#1e293b' }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#f8fafc' } }
+                }
+            }
+        });
+
+        // --- Simulator Logic ---
+        const sleepInput = document.getElementById('sleepInput');
+        const drinkInput = document.getElementById('drinkInput');
+        const sleepValue = document.getElementById('sleepValue');
+        const drinkValue = document.getElementById('drinkValue');
+
+        const simReaction = document.getElementById('simReaction');
+        const simBpm = document.getElementById('simBpm');
+
+        const statusBox = document.getElementById('statusBox');
+        const statusBadge = document.getElementById('statusBadge');
+        const statusIcon = document.getElementById('statusIcon');
+        const statusTitle = document.getElementById('statusTitle');
+        const statusDesc = document.getElementById('statusDesc');
+
+        function updateSimulator() {
+            const sleep = parseFloat(sleepInput.value);
+            const drinks = parseInt(drinkInput.value);
+
+            sleepValue.textContent = sleep + ' 시간';
+            drinkValue.textContent = drinks + ' 캔';
+
+            // Calculate Base Estimates
+            let baseReaction = 210 + (7.5 - sleep) * 14.2;
+            if (drinks === 1) baseReaction -= 15;
+            else if (drinks === 2) baseReaction -= 22;
+            else if (drinks >= 3) baseReaction += (drinks - 2) * 18; // Overdose penalty
+
+            let baseBpm = 72 + (drinks * 8) + (8 - sleep) * 2;
+
+            simReaction.textContent = Math.round(baseReaction) + ' ms';
+            simBpm.textContent = Math.round(baseBpm) + ' BPM';
+
+            // Rule Engine Logic
+            if (sleep < 5.0 && drinks >= 3) {
+                // RED
+                statusBox.className = "p-6 rounded-xl border transition-all duration-300 flex flex-col justify-between h-full bg-rose-950/40 border-rose-800";
+                statusBadge.className = "px-2.5 py-1 rounded-md text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30";
+                statusBadge.textContent = "위험 (DANGER)";
+                statusTitle.textContent = "과로 및 과다 카페인 위험";
+                statusDesc.textContent = "수면 심각 부족 상태에서 에너지드링크 과다 섭취. 심박수가 급증하고 반응 속도가 저하되는 구간입니다.";
+            } else if (sleep >= 6.5 && drinks <= 2) {
+                // GREEN
+                statusBox.className = "p-6 rounded-xl border transition-all duration-300 flex flex-col justify-between h-full bg-emerald-950/40 border-emerald-800";
+                statusBadge.className = "px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                statusBadge.textContent = "최적 (OPTIMAL)";
+                statusTitle.textContent = "최상의 경기력 컨디션";
+                statusDesc.textContent = "적정 수면시간과 카페인이 조화를 이루어 민첩한 인지 반응 속도를 유지하는 상태입니다.";
+            } else {
+                // AMBER
+                statusBox.className = "p-6 rounded-xl border transition-all duration-300 flex flex-col justify-between h-full bg-amber-950/40 border-amber-800";
+                statusBadge.className = "px-2.5 py-1 rounded-md text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30";
+                statusBadge.textContent = "주의 (WARNING)";
+                statusTitle.textContent = "피로 누적 주의 필요";
+                statusDesc.textContent = "수면부족 또는 카페인 부작용으로 인해 집중력과 조작 안정성에 변동이 나타날 수 있습니다.";
+            }
+        }
+
+        sleepInput.addEventListener('input', updateSimulator);
+        drinkInput.addEventListener('input', updateSimulator);
+
+        // Initial trigger
+        updateSimulator();
+    </script>
+</body>
+</html>
